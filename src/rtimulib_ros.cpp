@@ -27,8 +27,10 @@
 #include <RTIMULib.h>
 #include <ros/ros.h>
 #include <sensor_msgs/Imu.h>
+#include <sensor_msgs/MagneticField.h>
 
 static const double G_TO_MPSS = 9.80665;
+static const double uT_TO_T = 1000000.;
 
 int main(int argc, char **argv)
 {
@@ -58,6 +60,7 @@ int main(int argc, char **argv)
     }
 
     ros::Publisher imu_pub = nh.advertise<sensor_msgs::Imu>("imu", 1);
+    ros::Publisher mag_pub = nh.advertise<sensor_msgs::MagneticField>("mag", 1);
 
     // Load the RTIMULib.ini config file
     RTIMUSettings *settings = new RTIMUSettings(calibration_file_path.c_str(),
@@ -82,6 +85,8 @@ int main(int argc, char **argv)
     imu->setCompassEnable(true);
 
     sensor_msgs::Imu imu_msg;
+    sensor_msgs::MagneticField mag_msg;
+
     while (ros::ok())
     {
         if (imu->IMURead())
@@ -105,6 +110,14 @@ int main(int argc, char **argv)
             imu_msg.linear_acceleration.z = imu_data.accel.z() * G_TO_MPSS;
 
             imu_pub.publish(imu_msg);
+
+            mag_msg.header = imu_msg.header;
+
+            mag_msg.magnetic_field.x = imu_data.compass.x();
+            mag_msg.magnetic_field.y = imu_data.compass.y();
+            mag_msg.magnetic_field.z = imu_data.compass.z();
+
+            mag_pub.publish(mag_msg);
         }
         ros::spinOnce();
         ros::Duration(imu->IMUGetPollInterval() / 1000.0).sleep();
