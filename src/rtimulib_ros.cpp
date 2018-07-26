@@ -85,11 +85,11 @@ int main(int argc, char **argv)
     while (ros::ok())
     {
         if (imu->IMURead())
-        {
-            RTIMU_DATA imu_data = imu->getIMUData();
-
+        {   
             imu_msg.header.stamp = ros::Time::now();
             imu_msg.header.frame_id = frame_id;
+
+            RTIMU_DATA imu_data = imu->getIMUData();
 
             imu_msg.orientation.x = imu_data.fusionQPose.x(); 
             imu_msg.orientation.y = imu_data.fusionQPose.y(); 
